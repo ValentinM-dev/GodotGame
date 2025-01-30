@@ -17,10 +17,16 @@ public partial class Player : CharacterBody2D
     // add dash
     private int dashSpeed = 400;
     private bool isDashAvailable = true;
-    
+
     // add climb
     private bool canClimb;
     private int climbSpeed = 100;
+
+    // Config Animation
+    private bool isInAir = false;
+
+    // Add Effect
+    [Export] public PackedScene GhostPlayerInstance;
 
     public override void _Ready()
     {
@@ -42,6 +48,11 @@ public partial class Player : CharacterBody2D
 
         if (inputDirection != 0)
         {
+            if (isInAir == false)
+            {
+                GetNode<AnimatedSprite2D>("AnimatedSprite2D").Play("Run");
+            }
+
             velocity.X =
                 Mathf.MoveToward(velocity.X, inputDirection * Speed,
                     acceleration * (float)delta); // adjust x velocity with acceleration toward max speed
@@ -49,11 +60,28 @@ public partial class Player : CharacterBody2D
         else
         {
             velocity.X =
-                Mathf.MoveToward(velocity.X, 0, friction * (float)delta); // adjust x velocity with friction toward 0
+                Mathf.MoveToward(velocity.X, 0,
+                    friction * (float)delta); // adjust x velocity with friction toward 0
+
+            if (isInAir == false)
+            {
+                GetNode<AnimatedSprite2D>("AnimatedSprite2D").Play("Idle");
+            }
+        }
+
+        if (Input.IsActionPressed("ui_left"))
+        {
+            GetNode<AnimatedSprite2D>("AnimatedSprite2D").FlipH = true;
+        }
+        else
+        {
+            GetNode<AnimatedSprite2D>("AnimatedSprite2D").FlipH = false;
         }
 
         if (Input.IsActionJustPressed("ui_jump"))
         {
+            GetNode<AnimatedSprite2D>("AnimatedSprite2D").Play("Jump");
+            isInAir = true;
             if (jumpCount < maxJumps)
             {
                 velocity.Y = -JumpHeight;
@@ -73,14 +101,15 @@ public partial class Player : CharacterBody2D
             velocity.Y = -JumpHeight;
             velocity.X = JumpHeight;
         }
-        
-         else if (Input.IsActionJustPressed("ui_jump") && GetNode<RayCast2D>("RayCastRight").IsColliding())
+
+        else if (Input.IsActionJustPressed("ui_jump") && GetNode<RayCast2D>("RayCastRight").IsColliding())
         {
             velocity.Y = -JumpHeight;
             velocity.X = -JumpHeight;
         }
 
-        if (Input.IsActionPressed("ui_climb") && (GetNode<RayCast2D>("RayCastLeftClimb").IsColliding() || GetNode<RayCast2D>("RayCastRightClimb").IsColliding()))
+        if (Input.IsActionPressed("ui_climb") && (GetNode<RayCast2D>("RayCastLeftClimb").IsColliding() ||
+                                                  GetNode<RayCast2D>("RayCastRightClimb").IsColliding()))
         {
             if (canClimb)
             {
@@ -94,11 +123,11 @@ public partial class Player : CharacterBody2D
                 }
                 else
                 {
-                    velocity = new Vector2(0,0);
+                    velocity = new Vector2(0, 0);
                 }
             }
         }
-        
+
         if (isDashAvailable == true)
         {
             if (Input.IsActionJustPressed("dash"))
@@ -134,7 +163,21 @@ public partial class Player : CharacterBody2D
             isDashAvailable = false;
         }
 
+
         Velocity = velocity;
         MoveAndSlide();
+
+        //if (velocity.X > Speed + 40)
+       // {
+            //GhostDash();
+       // }
+    }
+
+    private void GhostDash()
+    {
+        //GhostPlayer ghost = GhostPlayerInstance.Instance() as GhostPlayer;
+        GhostPlayer ghost = (GhostPlayer)GhostPlayerInstance.Instantiate();
+        Owner.AddChild(ghost);
+        ghost.GlobalPosition = this.GlobalPosition;
     }
 }
