@@ -3,6 +3,9 @@ using System;
 
 public partial class Area2d : Area2D
 {
+	[Export]
+	private Marker2D RespawnPoint;
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -16,6 +19,20 @@ public partial class Area2d : Area2D
 
 	private void OnBodyEntered(Node2D body)
 	{
-		GD.Print("body entered");
+		if (body is CharacterBody2D)
+		{
+			if (body is Player)
+			{
+				Player pc = body as Player;
+				pc.TakeDamage();
+			}
+		}
+	}
+	
+	public void RespawnPlayer()
+	{
+		Player pc = GetNode<Player>("Player");
+		pc.GlobalPosition = RespawnPoint.GlobalPosition;
+		pc.RespawnPlayer();
 	}
 }

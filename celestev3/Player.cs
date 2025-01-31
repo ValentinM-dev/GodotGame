@@ -25,10 +25,20 @@ public partial class Player : CharacterBody2D
     // Config Animation
     private bool isInAir = false;
 
+    // Config Point de vie
+    private int Health = 1;
+
     // Add Effect
     [Export] public PackedScene GhostPlayerInstance;
 
-    public override void _Ready()
+    private AnimatedSprite2D animatedSprite;
+    
+    [Signal]
+    public delegate void DeathEventHandler();
+
+
+
+public override void _Ready()
     {
     }
 
@@ -165,12 +175,14 @@ public partial class Player : CharacterBody2D
 
 
         Velocity = velocity;
+        GD.Print(velocity.Y);
         MoveAndSlide();
+        
 
-        //if (velocity.X > Speed + 40)
-       // {
-            //GhostDash();
-       // }
+        if (Mathf.Abs(velocity.X) > Speed + 40 || Mathf.Abs(velocity.Y) > Speed + 40)
+        {
+            GhostDash();
+        }
     }
 
     private void GhostDash()
@@ -179,5 +191,37 @@ public partial class Player : CharacterBody2D
         GhostPlayer ghost = (GhostPlayer)GhostPlayerInstance.Instantiate();
         Owner.AddChild(ghost);
         ghost.GlobalPosition = this.GlobalPosition;
+        ghost.SetHValue(GetNode<AnimatedSprite2D>("AnimatedSprite2D").FlipH);
+    }
+
+    public void TakeDamage()
+    {
+        Health -= 1;
+        GD.Print("Player has taken Damage");
+        GD.Print("Current Health : " + Health);
+
+        if (Health <= 0)
+        {
+            Health = 0;
+            animatedSprite.Play("Death");
+            GD.Print("Game Over");
+        }
+
+    }
+    private void _on_animated_sprite_2d_animation_finished()
+    {
+        if (animatedSprite.Animation == "Death")
+        {
+            animatedSprite.Stop();
+            Hide();
+            GD.Print("Animation finished");
+            EmitSignal(nameof(Death));
+        }
+    }
+
+    public void RespawnPlayer()
+    {
+        Show();
+        Health = 1;
     }
 }
