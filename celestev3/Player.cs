@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 public partial class Player : CharacterBody2D
 {
@@ -31,16 +30,18 @@ public partial class Player : CharacterBody2D
     // Add Effect
     [Export] public PackedScene GhostPlayerInstance;
 
-    private AnimatedSprite2D animatedSprite;
-    
+    [Export] public AnimatedSprite2D animatedSprite;
+
+
     [Signal]
     public delegate void DeathEventHandler();
 
 
-
-public override void _Ready()
+    public override void _Ready()
     {
+        
     }
+
 
     public override void _PhysicsProcess(double delta)
     {
@@ -175,9 +176,8 @@ public override void _Ready()
 
 
         Velocity = velocity;
-        GD.Print(velocity.Y);
         MoveAndSlide();
-        
+
 
         if (Mathf.Abs(velocity.X) > Speed + 40 || Mathf.Abs(velocity.Y) > Speed + 40)
         {
@@ -197,31 +197,11 @@ public override void _Ready()
     public void TakeDamage()
     {
         Health -= 1;
-        GD.Print("Player has taken Damage");
-        GD.Print("Current Health : " + Health);
 
         if (Health <= 0)
         {
-            Health = 0;
-            animatedSprite.Play("Death");
-            GD.Print("Game Over");
-        }
-
-    }
-    private void _on_animated_sprite_2d_animation_finished()
-    {
-        if (animatedSprite.Animation == "Death")
-        {
-            animatedSprite.Stop();
-            Hide();
-            GD.Print("Animation finished");
             EmitSignal(nameof(Death));
+            GetTree().CallDeferred("reload_current_scene");
         }
-    }
-
-    public void RespawnPlayer()
-    {
-        Show();
-        Health = 1;
     }
 }

@@ -1,11 +1,8 @@
 using Godot;
+using System;
 
-
-public partial class Area2d : Area2D
+public partial class SlimeDamage : Area2D
 {
-	[Export]
-	private Marker2D RespawnPoint;
-	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -16,7 +13,7 @@ public partial class Area2d : Area2D
 	public override void _Process(double delta)
 	{
 	}
-
+	
 	private void OnBodyEntered(Node2D body)
 	{
 		if (body is CharacterBody2D)
